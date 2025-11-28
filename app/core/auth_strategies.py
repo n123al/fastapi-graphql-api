@@ -1,6 +1,7 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast, TYPE_CHECKING
 
 import jwt
 from fastapi import HTTPException, status
@@ -8,8 +9,9 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError, TokenError
-from app.data.models.user import User
-from app.data.repositories import UserRepository
+if TYPE_CHECKING:
+    from app.data.models.user import User
+    from app.data.repositories import UserRepository
 
 
 class IPasswordManager(ABC):
