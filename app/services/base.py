@@ -106,7 +106,7 @@ class BaseService(ABC, Generic[T]):
             NotFoundError: If record is not found
         """
         record = await self.repository.get_by_id(record_id)
-        if not record:
+        if record is None:
             raise NotFoundError(f"{self.service_name} not found with ID: {record_id}")
         return record
 
@@ -122,7 +122,8 @@ class BaseService(ABC, Generic[T]):
         Returns:
             List of records matching the criteria
         """
-        return await self.repository.get_all(limit=limit, skip=skip, **filters)
+        records = await self.repository.get_all(limit=limit, skip=skip, **filters)
+        return records
 
     async def count(self, **filters: Any) -> int:
         """
@@ -134,7 +135,8 @@ class BaseService(ABC, Generic[T]):
         Returns:
             Number of matching records
         """
-        return await self.repository.count(**filters)
+        cnt = await self.repository.count(**filters)
+        return cnt
 
     async def create(self, data: Dict[str, Any]) -> T:
         """
@@ -181,7 +183,8 @@ class BaseService(ABC, Generic[T]):
         """
         # Check if record exists
         await self.get_by_id(record_id)  # This will raise NotFoundError if not found
-        return await self.repository.delete(record_id)
+        success = await self.repository.delete(record_id)
+        return success
 
     def _log_operation(self, operation: str, details: Dict[str, Any]) -> None:
         """

@@ -51,7 +51,8 @@ class RoleService:
         Returns:
             List of all role objects
         """
-        return await self.role_repository.get_all(limit=limit)
+        roles: List[Role] = await self.role_repository.get_all(limit=limit)
+        return roles
 
     async def get_role_by_name(self, name: str) -> Optional[Role]:
         """
@@ -134,7 +135,8 @@ class RoleService:
         # Ensure role exists
         _ = await self.get_role_by_id(role_id)
         # Soft delete the role
-        return await self.role_repository.delete(role_id)
+        success: bool = await self.role_repository.delete(role_id)
+        return success
 
     async def assign_permissions_to_role(
         self, role_id: str, permission_ids: List[str]
