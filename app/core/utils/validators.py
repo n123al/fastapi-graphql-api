@@ -7,7 +7,7 @@ passwords, and other common data types used throughout the application.
 
 import re
 import string
-from typing import Optional
+from typing import Any, Optional
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -103,7 +103,7 @@ def validate_password(
         return False, ["Password is required"]
 
     # Default requirements
-    default_requirements = {
+    default_requirements: dict[str, Any] = {
         "min_length": 8,
         "require_uppercase": True,
         "require_lowercase": True,
@@ -112,32 +112,32 @@ def validate_password(
     }
 
     # Merge with provided requirements
+    final_requirements = default_requirements.copy()
     if requirements:
-        default_requirements.update(requirements)
+        final_requirements.update(requirements)
 
-    requirements = default_requirements
     errors = []
 
     # Check minimum length
-    if len(password) < requirements["min_length"]:
+    if len(password) < final_requirements["min_length"]:
         errors.append(
-            f"Password must be at least {requirements['min_length']} characters long"
+            f"Password must be at least {final_requirements['min_length']} characters long"
         )
 
     # Check uppercase letters
-    if requirements["require_uppercase"] and not re.search(r"[A-Z]", password):
+    if final_requirements.get("require_uppercase") and not re.search(r"[A-Z]", password):
         errors.append("Password must contain at least one uppercase letter")
 
     # Check lowercase letters
-    if requirements["require_lowercase"] and not re.search(r"[a-z]", password):
+    if final_requirements.get("require_lowercase") and not re.search(r"[a-z]", password):
         errors.append("Password must contain at least one lowercase letter")
 
     # Check numbers
-    if requirements["require_numbers"] and not re.search(r"\d", password):
+    if final_requirements.get("require_numbers") and not re.search(r"\d", password):
         errors.append("Password must contain at least one number")
 
     # Check special characters
-    if requirements["require_special"] and not re.search(
+    if final_requirements.get("require_special") and not re.search(
         r'[!@#$%^&*(),.?":{}|<>]', password
     ):
         errors.append("Password must contain at least one special character")
