@@ -122,7 +122,9 @@ class BaseService(ABC, Generic[T]):
         Returns:
             List of records matching the criteria
         """
-        records: List[T] = await self.repository.get_all(limit=limit, skip=skip, **filters)
+        records: List[T] = await self.repository.get_all(
+            limit=limit, skip=skip, **filters
+        )
         return records
 
     async def count(self, **filters: Any) -> int:
