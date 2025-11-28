@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError, TokenError
+
 if TYPE_CHECKING:
     from app.data.models.user import User
     from app.data.repositories import UserRepository
