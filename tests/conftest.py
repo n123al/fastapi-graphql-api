@@ -1,15 +1,20 @@
-import pytest
 import asyncio
+import os
+import sys
 from typing import AsyncGenerator
 from unittest.mock import Mock
+
+import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.core.config import settings
 from app.core.motor_database import motor_db_manager
-from app.data.models.user import User
-from app.data.models.role import Role
-from app.data.models.permission import Permission
 from app.data.models.group import Group
+from app.data.models.permission import Permission
+from app.data.models.role import Role
+from app.data.models.user import User
 
 
 @pytest.fixture(scope="session")
@@ -25,23 +30,23 @@ async def setup_test_database():
     """Set up test database before running tests."""
     # Use a separate test database
     test_db_name = f"{settings.DATABASE_NAME}_test"
-    
+
     # Create test database client
     client = AsyncIOMotorClient(settings.MONGODB_URL)
-    
+
     # Drop test database if it exists
     try:
         await client.drop_database(test_db_name)
     except Exception:
         pass  # Database might not exist
-    
+
     # Initialize motor database manager with test database
     motor_db_manager.client = client
     motor_db_manager.database = client[test_db_name]
     motor_db_manager.is_connected = True
-    
+
     yield motor_db_manager
-    
+
     # Cleanup after tests
     try:
         await client.drop_database(test_db_name)
@@ -58,35 +63,26 @@ def test_user_data():
         "username": "testuser",
         "email": "test@example.com",
         "password": "testpassword123",
-        "hashed_password": "$2b$12$testhash"
+        "hashed_password": "$2b$12$testhash",
     }
 
 
 @pytest.fixture
 def test_role_data():
     """Provide test role data."""
-    return {
-        "name": "test_role",
-        "description": "Test role for testing"
-    }
+    return {"name": "test_role", "description": "Test role for testing"}
 
 
 @pytest.fixture
 def test_permission_data():
     """Provide test permission data."""
-    return {
-        "name": "test:permission",
-        "description": "Test permission for testing"
-    }
+    return {"name": "test:permission", "description": "Test permission for testing"}
 
 
 @pytest.fixture
 def test_group_data():
     """Provide test group data."""
-    return {
-        "name": "test_group",
-        "description": "Test group for testing"
-    }
+    return {"name": "test_group", "description": "Test group for testing"}
 
 
 @pytest.fixture
