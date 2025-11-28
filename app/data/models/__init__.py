@@ -12,7 +12,11 @@ from app.data.models.role import Role
 from app.data.models.user import User, UserPreferences, UserProfile
 
 __all__ = [
-    'BaseDataModel',
-    'User', 'UserProfile', 'UserPreferences',
-    'Role', 'Permission', 'Group'
+    "BaseDataModel",
+    "User",
+    "UserProfile",
+    "UserPreferences",
+    "Role",
+    "Permission",
+    "Group",
 ]

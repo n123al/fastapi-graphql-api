@@ -3,7 +3,7 @@ Data layer package containing all data models, schemas, and database configurati
 
 This package provides the data access layer for the application, including:
 - Data models and Pydantic schemas
-- Database connection configurations  
+- Database connection configurations
 - Data transformation utilities
 - Repository interfaces and implementations
 """
@@ -22,12 +22,16 @@ from app.data.repositories import (
 )
 
 __all__ = [
-    'BaseDataModel',
-    'User', 'UserProfile', 'UserPreferences',
-    'Role', 'Permission', 'Group',
-    'BaseRepository',
-    'UserRepository',
-    'RoleRepository',
-    'PermissionRepository',
-    'GroupRepository'
+    "BaseDataModel",
+    "User",
+    "UserProfile",
+    "UserPreferences",
+    "Role",
+    "Permission",
+    "Group",
+    "BaseRepository",
+    "UserRepository",
+    "RoleRepository",
+    "PermissionRepository",
+    "GroupRepository",
 ]
