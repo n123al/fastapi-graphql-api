@@ -14,7 +14,7 @@ motor>=3.7.1                # Async client used by app/core/motor_database.py
 pymongo>=4.7.0              # Explicit, imported in app/core/motor_database.py
 
 # Configuration and validation
-pydantic==2.12.4            # Pydantic v2 models used across app/data/models/*
+pydantic[email]==2.12.4     # Pydantic v2 models used across app/data/models/*
 pydantic-settings>=2.0.0    # Loads .env and Settings in app/core/config.py
 
 # Security and auth
