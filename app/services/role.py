@@ -23,7 +23,7 @@ class RoleService:
 
     def __init__(self) -> None:
         """Initialize the role service with required repositories."""
-        self.role_repository = RoleRepository()
+        self.role_repository: RoleRepository = RoleRepository()
 
     async def get_role_by_id(self, role_id: str) -> Optional[Role]:
         """

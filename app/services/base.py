@@ -47,8 +47,8 @@ class BaseService(ABC, Generic[T]):
             repository: Data repository for CRUD operations
             service_name: Name of the service for identification
         """
-        self.repository = repository
-        self.service_name = service_name
+        self.repository: BaseRepository[T] = repository
+        self.service_name: str = service_name
 
     def _validate_required_fields(
         self, data: Dict[str, Any], required_fields: List[str]

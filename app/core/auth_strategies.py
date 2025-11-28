@@ -40,11 +40,13 @@ class PasswordManager(IPasswordManager):
 
     def hash_password(self, password: str) -> str:
         """Hash a password."""
-        return self.pwd_context.hash(password)
+        hashed: str = self.pwd_context.hash(password)
+        return hashed
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
-        return self.pwd_context.verify(plain_password, hashed_password)
+        ok: bool = self.pwd_context.verify(plain_password, hashed_password)
+        return ok
 
 
 class ITokenManager(ABC):
