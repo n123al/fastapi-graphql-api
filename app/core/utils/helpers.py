@@ -38,14 +38,10 @@ def generate_random_string(length: int = 16, charset: Optional[str] = None) -> s
     if charset is None:
         charset = string.ascii_letters + string.digits + "!@#$%^&*"
 
-    # Use secrets module for cryptographic randomness if available
-    try:
-        import secrets
+    # Use secrets module for cryptographic randomness
+    import secrets
 
-        return "".join(secrets.choice(charset) for _ in range(length))
-    except ImportError:
-        # Fallback to random module
-        return "".join(random.choice(charset) for _ in range(length))
+    return "".join(secrets.choice(charset) for _ in range(length))
 
 
 def sanitize_html(raw_html: str, allowed_tags: Optional[list] = None) -> str:

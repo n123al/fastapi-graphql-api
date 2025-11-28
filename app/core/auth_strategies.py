@@ -196,7 +196,8 @@ class UsernamePasswordAuthStrategy(IAuthenticationStrategy):
         # Reset login attempts on successful authentication
         await user.reset_login_attempts()
 
-        assert user is not None
+        if user is None:
+            raise AuthenticationError("User not found")
         return user
 
     async def validate_token(self, token: str) -> User:
@@ -262,14 +263,16 @@ class EmailAuthStrategy(IAuthenticationStrategy):
                 payload = self.token_manager.decode_token(magic_token)
                 if payload.get("email") != email:
                     raise AuthenticationError("Invalid magic token")
-                assert user is not None
+                if user is None:
+                    raise AuthenticationError("User not found")
                 return user
             except TokenError:
                 raise AuthenticationError("Invalid magic token")
 
         # For passwordless authentication, you might send an email here
         # This is a simplified version
-        assert user is not None
+        if user is None:
+            raise AuthenticationError("User not found")
         return user
 
     async def validate_token(self, token: str) -> User:

@@ -319,7 +319,7 @@ class AuthenticationService(BaseService[User]):
         try:
             payload = decode_token(token)
             token_type = payload.get("type")
-            if token_type != "set_password":
+            if token_type != "set_password":  # nosec
                 raise AuthenticationError("Invalid token type")
             user_id = str(payload.get("sub"))
             if not user_id:

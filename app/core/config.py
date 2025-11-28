@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "FastAPI GraphQL API"
     DEBUG: bool = False
-    HOST: str = "0.0.0.0"
+    HOST: str = "0.0.0.0"  # nosec B104
     PORT: int = 8000
     SECRET_KEY: str = "your-secret-key-change-this"
     ALGORITHM: str = "HS256"
