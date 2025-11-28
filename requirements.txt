@@ -1,0 +1,29 @@
+#############################################
+# Runtime dependencies for this FastAPI app #
+#############################################
+
+# Web framework and ASGI server
+fastapi==0.121.3            # Main web framework used throughout app/*
+uvicorn[standard]==0.38.0   # ASGI server to run the application
+
+# GraphQL support (Strawberry + FastAPI integration)
+strawberry-graphql[fastapi]==0.286.0  # GraphQL schema/router via strawberry.fastapi
+
+# Database (MongoDB via Motor) and drivers
+motor>=3.7.1                # Async client used by app/core/motor_database.py
+pymongo>=4.7.0              # Explicit, imported in app/core/motor_database.py
+
+# Configuration and validation
+pydantic==2.12.4            # Pydantic v2 models used across app/data/models/*
+pydantic-settings>=2.0.0    # Loads .env and Settings in app/core/config.py
+
+# Security and auth
+pyjwt==2.10.1               # JWT tokens in app/core/auth_strategies.py
+passlib[bcrypt]==1.7.4      # Password hashing/verification in auth strategies
+
+# Logging
+structlog==25.5.0           # Structured logging used in app/main.py and run.py
+
+#############################################
+# End of runtime dependencies                #
+#############################################
