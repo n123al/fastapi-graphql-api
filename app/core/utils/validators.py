@@ -125,11 +125,15 @@ def validate_password(
         )
 
     # Check uppercase letters
-    if final_requirements.get("require_uppercase") and not re.search(r"[A-Z]", password):
+    if final_requirements.get("require_uppercase") and not re.search(
+        r"[A-Z]", password
+    ):
         errors.append("Password must contain at least one uppercase letter")
 
     # Check lowercase letters
-    if final_requirements.get("require_lowercase") and not re.search(r"[a-z]", password):
+    if final_requirements.get("require_lowercase") and not re.search(
+        r"[a-z]", password
+    ):
         errors.append("Password must contain at least one lowercase letter")
 
     # Check numbers
