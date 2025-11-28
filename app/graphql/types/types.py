@@ -5,19 +5,21 @@ This module contains all Strawberry GraphQL type definitions used throughout
 the application, providing a centralized location for type management.
 """
 
-import strawberry
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+import strawberry
 
 
 @strawberry.type
 class User:
     """
     GraphQL User type representing user information.
-    
+
     This type defines the structure of user data exposed through GraphQL,
     including basic profile information, status fields, and timestamps.
     """
+
     id: strawberry.ID
     username: str
     email: str
@@ -32,10 +34,11 @@ class User:
 class Role:
     """
     GraphQL Role type representing role-based access control.
-    
+
     This type defines the structure of role data, including role metadata
     and status information for access control systems.
     """
+
     id: strawberry.ID
     name: str
     description: Optional[str] = None
@@ -49,10 +52,11 @@ class Role:
 class Permission:
     """
     GraphQL Permission type representing access permissions.
-    
+
     This type defines the structure of permission data, including
     resource and action specifications for fine-grained access control.
     """
+
     id: strawberry.ID
     name: str
     description: Optional[str] = None
@@ -67,10 +71,11 @@ class Permission:
 class Group:
     """
     GraphQL Group type representing user groups.
-    
+
     This type defines the structure of group data for organizing
     users and managing collective permissions.
     """
+
     id: strawberry.ID
     name: str
     description: Optional[str] = None
@@ -85,10 +90,11 @@ class Group:
 class UserInput:
     """
     Input type for user creation and updates.
-    
+
     This type defines the required and optional fields for creating
     or updating user records through GraphQL mutations.
     """
+
     username: str
     email: str
     full_name: Optional[str] = None
@@ -101,10 +107,11 @@ class UserInput:
 class RoleInput:
     """
     Input type for role creation and updates.
-    
+
     This type defines the required and optional fields for managing
     role data through GraphQL mutations.
     """
+
     name: str
     description: Optional[str] = None
     is_system_role: Optional[bool] = False
@@ -115,10 +122,11 @@ class RoleInput:
 class PermissionInput:
     """
     Input type for permission creation and updates.
-    
+
     This type defines the required and optional fields for managing
     permission data through GraphQL mutations.
     """
+
     name: str
     description: Optional[str] = None
     resource: str
@@ -130,10 +138,11 @@ class PermissionInput:
 class GroupInput:
     """
     Input type for group creation and updates.
-    
+
     This type defines the required and optional fields for managing
     group data through GraphQL mutations.
     """
+
     name: str
     description: Optional[str] = None
     is_system_group: Optional[bool] = False
@@ -144,6 +153,7 @@ class GroupInput:
 class LoginInput:
     identifier: str
     password: str
+
 
 @strawberry.input
 class SetPasswordInput:

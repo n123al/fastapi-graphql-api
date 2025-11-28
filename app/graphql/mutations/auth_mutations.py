@@ -1,11 +1,12 @@
-import strawberry
 from typing import Optional
+
+import strawberry
 from strawberry.types import Info
 
-from app.services.auth import AuthenticationService
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.data.repositories import UserRepository
-from app.graphql.types.types import LoginInput, AuthPayload, AccessTokenPayload
+from app.graphql.types.types import AccessTokenPayload, AuthPayload, LoginInput
+from app.services.auth import AuthenticationService
 
 
 class AuthMutations:
@@ -15,7 +16,9 @@ class AuthMutations:
     @strawberry.mutation
     async def login(self, info: Info, input: LoginInput) -> AuthPayload:
         try:
-            user = await self._auth_service.authenticate_user(input.identifier, input.password)
+            user = await self._auth_service.authenticate_user(
+                input.identifier, input.password
+            )
             tokens = await self._auth_service.generate_tokens(user)
             return AuthPayload(
                 accessToken=tokens["access_token"],

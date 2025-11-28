@@ -47,10 +47,10 @@ def main():
         print("  Run: pip install pytest pytest-asyncio pytest-cov")
         sys.exit(1)
     try:
-        import mypy  # noqa: F401
+        import flake8  # noqa: F401
     except ImportError:
-        print("⚠ mypy is not installed")
-        print("  Run: pip install mypy")
+        print("⚠  flake8 is not installed")
+        print("  Run: pip install flake8")
     
     # Run different test suites
     test_commands = [
@@ -75,7 +75,7 @@ def main():
     print("  1. Run all tests (quick)")
     print("  2. Run tests with coverage report")
     print("  3. Run tests with HTML coverage report")
-    print("  4. Run mypy typecheck")
+    print("  4. Run flake8 typecheck")
     print("  5. Run all of the above")
     print()
     
@@ -89,14 +89,14 @@ def main():
         run_command(test_commands[2]["command"], test_commands[2]["description"])
         print("\n→ HTML coverage report generated at: htmlcov/index.html")
     elif choice == "4":
-        run_command(f"{sys.executable} -m mypy app --ignore-missing-imports", "Running mypy typecheck")
+        run_command(f"{sys.executable} -m flake8 app --config=.flake8", "Running flake8 typecheck")
     elif choice == "5":
         for cmd in test_commands:
             if not run_command(cmd["command"], cmd["description"]):
                 print("\n⚠️  Some tests failed")
                 break
         print("\n→ HTML coverage report generated at: htmlcov/index.html")
-        run_command(f"{sys.executable} -m mypy app --ignore-missing-imports", "Running mypy typecheck")
+        run_command(f"{sys.executable} -m flake8 app --config=.flake8", "Running flake8 typecheck")
     else:
         print("Invalid choice")
         sys.exit(1)
@@ -111,7 +111,7 @@ def main():
     print(f"  • Run with verbose output: {sys.executable} -m pytest -vv")
     print(f"  • Run and stop on first failure: {sys.executable} -m pytest -x")
     print()
-    print(f"  • Run typecheck: {sys.executable} -m mypy app --ignore-missing-imports")
+    print(f"  • Run typecheck: {sys.executable} -m flake8 app --config=.flake8")
 
 
 if __name__ == "__main__":
