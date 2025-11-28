@@ -21,9 +21,12 @@ class TestSettings:
     
     def test_default_values(self):
         """Test default configuration values."""
-        settings = Settings()
+        # Create a fresh settings instance ignoring env vars for this test
+        # by creating a class that doesn't inherit from BaseSettings or
+        # by manually checking the default value of the class attribute
+        assert Settings.model_fields["APP_NAME"].default == "FastAPI GraphQL API"
         
-        assert settings.APP_NAME == "FastAPI GraphQL API"
+        settings = Settings()
         assert isinstance(settings.DEBUG, bool)
         assert isinstance(settings.PORT, int)
         assert settings.PORT > 0
