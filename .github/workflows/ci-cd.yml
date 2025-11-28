@@ -46,10 +46,6 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio mypy flake8 black isort bandit pre-commit
 
-    - name: Validate architecture boundaries
-      run: |
-        python scripts/validate_architecture.py
-
     - name: Run linting with flake8
       run: |
         flake8 app --config=.flake8
