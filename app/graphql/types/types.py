@@ -50,7 +50,7 @@ class Role:
     @strawberry.field
     async def permissions(self, info: strawberry.types.Info) -> List[Permission]:
         """Get permissions assigned to this role."""
-        from app.data.repositories import RoleRepository, PermissionRepository
+        from app.data.repositories import PermissionRepository, RoleRepository
 
         # self.id is strawberry.ID, convert to str
         role_id = str(self.id)
@@ -101,7 +101,7 @@ class User:
     @strawberry.field
     async def roles(self, info: strawberry.types.Info) -> List[Role]:
         """Get roles assigned to this user."""
-        from app.data.repositories import UserRepository, RoleRepository
+        from app.data.repositories import RoleRepository, UserRepository
 
         user_id = str(self.id)
         user_repo = UserRepository()
@@ -159,6 +159,29 @@ class Group:
     updated_at: Optional[datetime] = None
 
 
+@strawberry.type
+class AccessTokenPayload:
+    """
+    Payload returned when refreshing an access token.
+    """
+
+    accessToken: str
+    tokenType: str
+    expiresIn: int
+
+
+@strawberry.type
+class AuthPayload:
+    """
+    Payload returned upon successful authentication.
+    """
+
+    accessToken: str
+    refreshToken: str
+    tokenType: str
+    expiresIn: int
+
+
 # Input types for mutations
 @strawberry.input
 class UserInput:
@@ -202,49 +225,27 @@ class PermissionInput:
     """
 
     name: str
-    description: Optional[str] = None
     resource: str
     action: str
-    is_active: Optional[bool] = True
-
-
-@strawberry.input
-class GroupInput:
-    """
-    Input type for group creation and updates.
-
-    This type defines the required and optional fields for managing
-    group data through GraphQL mutations.
-    """
-
-    name: str
     description: Optional[str] = None
-    is_system_group: Optional[bool] = False
     is_active: Optional[bool] = True
 
 
 @strawberry.input
 class LoginInput:
+    """
+    Input type for user login.
+    """
+
     identifier: str
     password: str
 
 
 @strawberry.input
 class SetPasswordInput:
+    """
+    Input type for setting a new password using a token.
+    """
+
     token: str
     password: str
-
-
-@strawberry.type
-class AuthPayload:
-    accessToken: str
-    refreshToken: str
-    tokenType: str
-    expiresIn: int
-
-
-@strawberry.type
-class AccessTokenPayload:
-    accessToken: str
-    tokenType: str
-    expiresIn: int

@@ -27,11 +27,7 @@ from app.core.auth_strategies import (
 from app.core.config import Settings, settings
 
 # Constants
-from app.core.constants import (
-    API_RATE_LIMITS,
-    DEFAULT_ROLES,
-    PERMISSIONS,
-)
+from app.core.constants import API_RATE_LIMITS, DEFAULT_ROLES, PERMISSIONS
 
 # Exceptions
 from app.core.exceptions import (
