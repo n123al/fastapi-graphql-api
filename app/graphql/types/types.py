@@ -46,20 +46,20 @@ class Role:
     is_active: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
+
     @strawberry.field
     async def permissions(self, info: strawberry.types.Info) -> List[Permission]:
         """Get permissions assigned to this role."""
         from app.data.repositories import RoleRepository, PermissionRepository
-        
+
         # self.id is strawberry.ID, convert to str
         role_id = str(self.id)
         role_repo = RoleRepository()
         role = await role_repo.get_by_id(role_id)
-        
+
         if not role:
             return []
-            
+
         perm_repo = PermissionRepository()
         permissions = []
         for perm_id in role.permission_ids:
@@ -102,14 +102,14 @@ class User:
     async def roles(self, info: strawberry.types.Info) -> List[Role]:
         """Get roles assigned to this user."""
         from app.data.repositories import UserRepository, RoleRepository
-        
+
         user_id = str(self.id)
         user_repo = UserRepository()
         user = await user_repo.get_by_id(user_id)
-        
+
         if not user:
             return []
-            
+
         role_repo = RoleRepository()
         roles = []
         for role_id in user.role_ids:
@@ -135,7 +135,7 @@ class User:
         Includes direct permissions and permissions inherited from roles.
         """
         from app.core.auth_strategies import AuthorizationService
-        
+
         user_id = str(self.id)
         auth_service = AuthorizationService()
         return await auth_service.get_user_permissions(user_id)

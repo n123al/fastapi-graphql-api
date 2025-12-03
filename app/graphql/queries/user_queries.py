@@ -217,10 +217,11 @@ class UserQueries:
         try:
             # Get current user from context - require_authentication ensures this is not None
             current_user = await get_current_user(info)
-            
+
             if not current_user:
                 # This should ideally be caught by the decorator, but as a safeguard
                 from app.core.exceptions import AuthenticationError
+
                 raise AuthenticationError("Authentication required")
 
             return self._to_graphql_user(current_user)
@@ -228,7 +229,7 @@ class UserQueries:
         except Exception as e:
             # Re-raise authentication errors
             from app.core.exceptions import AuthenticationError
-            
+
             if isinstance(e, AuthenticationError):
                 raise
             print(f"Error in me query: {str(e)}")

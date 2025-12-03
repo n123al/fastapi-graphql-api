@@ -31,9 +31,7 @@ class Permission(BaseDataModel):
     resource: str = Field(
         ..., max_length=50, description="Resource this permission applies to"
     )
-    action: str = Field(
-        ..., max_length=50, description="Action this permission grants"
-    )
+    action: str = Field(..., max_length=50, description="Action this permission grants")
 
     # System permission flag
     is_system_permission: bool = Field(
