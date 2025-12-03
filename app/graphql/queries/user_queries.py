@@ -199,6 +199,41 @@ class UserQueries:
             print(f"Error in user_by_username query: {str(e)}")
             return None
 
+    @require_authentication()
+    async def me(self, info: Info) -> Optional[User]:
+        """
+        Retrieve the currently authenticated user.
+        Requires authentication.
+
+        Args:
+            info: GraphQL context info
+
+        Returns:
+            User object for the current user
+
+        Raises:
+            AuthenticationError if user is not authenticated
+        """
+        try:
+            # Get current user from context - require_authentication ensures this is not None
+            current_user = await get_current_user(info)
+            
+            if not current_user:
+                # This should ideally be caught by the decorator, but as a safeguard
+                from app.core.exceptions import AuthenticationError
+                raise AuthenticationError("Authentication required")
+
+            return self._to_graphql_user(current_user)
+
+        except Exception as e:
+            # Re-raise authentication errors
+            from app.core.exceptions import AuthenticationError
+            
+            if isinstance(e, AuthenticationError):
+                raise
+            print(f"Error in me query: {str(e)}")
+            return None
+
     async def user_by_email(self, info: Info, email: str) -> Optional[User]:
         """
         Retrieve a user by their email address.

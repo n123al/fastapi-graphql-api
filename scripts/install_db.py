@@ -20,15 +20,32 @@ async def ensure_permissions(db):
     created = 0
     for name, description in DEFAULT_PERMISSIONS.items():
         existing = await perms_col.find_one({"name": name})
+        
+        # Derive resource and action from name
+        if ":" in name:
+            resource, action = name.split(":", 1)
+        else:
+            resource = "system"
+            action = name
+            
         if not existing:
             await perms_col.insert_one({
                 "name": name,
                 "description": description,
+                "resource": resource,
+                "action": action,
                 "is_active": True,
                 "created_at": datetime.now(timezone.utc),
                 "updated_at": datetime.now(timezone.utc)
             })
             created += 1
+        else:
+            # Ensure resource and action are set even if permission exists
+            if "resource" not in existing or "action" not in existing:
+                await perms_col.update_one(
+                    {"_id": existing["_id"]},
+                    {"$set": {"resource": resource, "action": action}}
+                )
     print(f"permissions: created={created}")
 
 

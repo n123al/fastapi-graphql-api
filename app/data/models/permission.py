@@ -28,11 +28,11 @@ class Permission(BaseDataModel):
     )
 
     # Resource and action specification
-    resource: Optional[str] = Field(
-        default=None, max_length=50, description="Resource this permission applies to"
+    resource: str = Field(
+        ..., max_length=50, description="Resource this permission applies to"
     )
-    action: Optional[str] = Field(
-        default=None, max_length=50, description="Action this permission grants"
+    action: str = Field(
+        ..., max_length=50, description="Action this permission grants"
     )
 
     # System permission flag
@@ -47,11 +47,9 @@ class Permission(BaseDataModel):
         Get full permission string in format 'resource:action'.
 
         Returns:
-            Full permission string, or just name if resource/action not specified
+            Full permission string
         """
-        if self.resource and self.action:
-            return f"{self.resource}:{self.action}"
-        return self.name
+        return f"{self.resource}:{self.action}"
 
     @property
     def permission_key(self) -> str:
@@ -61,9 +59,7 @@ class Permission(BaseDataModel):
         Returns:
             Unique permission key based on resource and action
         """
-        if self.resource and self.action:
-            return f"{self.resource}:{self.action}"
-        return self.name
+        return f"{self.resource}:{self.action}"
 
     def matches_resource(self, resource: str) -> bool:
         """
@@ -75,7 +71,7 @@ class Permission(BaseDataModel):
         Returns:
             True if permission matches the resource, False otherwise
         """
-        return self.resource == resource if self.resource else False
+        return self.resource == resource
 
     def matches_action(self, action: str) -> bool:
         """
@@ -87,7 +83,7 @@ class Permission(BaseDataModel):
         Returns:
             True if permission matches the action, False otherwise
         """
-        return self.action == action if self.action else False
+        return self.action == action
 
     def can_perform(self, resource: str, action: str) -> bool:
         """
@@ -100,11 +96,7 @@ class Permission(BaseDataModel):
         Returns:
             True if permission allows the action on the resource, False otherwise
         """
-        return (
-            (self.resource == resource and self.action == action)
-            if (self.resource and self.action)
-            else False
-        )
+        return self.resource == resource and self.action == action
 
     def can_be_deleted(self) -> bool:
         """
@@ -138,12 +130,7 @@ class Permission(BaseDataModel):
 
     def __repr__(self) -> str:
         """String representation of the permission."""
-        resource_action = (
-            f"{self.resource}:{self.action}"
-            if (self.resource and self.action)
-            else self.name
-        )
-        return f"<Permission(name='{self.name}', key='{resource_action}')>"
+        return f"<Permission(name='{self.name}', key='{self.resource}:{self.action}')>"
 
     def __str__(self) -> str:
         """String representation of the permission."""

@@ -52,6 +52,11 @@ class Query:
         return await UserQueries().user(info, id)
 
     @strawberry.field
+    async def me(self, info: Info) -> Optional[User]:
+        """Get current authenticated user."""
+        return await UserQueries().me(info)
+
+    @strawberry.field
     async def users(self, info: Info, limit: int = 100) -> List[User]:
         """Get all active users."""
         result: List[User] = await UserQueries().users(info, limit)
