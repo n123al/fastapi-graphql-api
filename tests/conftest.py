@@ -7,8 +7,6 @@ from unittest.mock import Mock
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from app.core.config import settings
 from app.core.motor_database import motor_db_manager
 from app.data.models.group import Group

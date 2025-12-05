@@ -12,12 +12,18 @@ import strawberry
 from strawberry.types import Info
 
 from app.core import settings
-from app.core.exceptions import AuthenticationError, AuthorizationError
+from app.core.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    ConflictError,
+    ValidationError,
+)
 from app.core.security import create_set_password_token
 from app.core.utils.helpers import generate_random_string, send_email_smtp
 from app.core.utils.validators import validate_password
 from app.data.repositories import UserRepository
 from app.graphql.auth import (
+    check_permission,
     get_current_user,
     require_any_permission,
     require_authentication,
@@ -81,10 +87,9 @@ class UserMutations:
 
         Raises:
             AuthorizationError: If user lacks permission to create users
-            Exception: If service validation fails or user creation fails
-
-        Note:
-            Automatically adds timestamps and sets initial user state
+            ConflictError: If username or email already exists
+            ValidationError: If input data is invalid
+            Exception: If user creation fails
         """
         try:
             user_service = UserService(UserRepository())
@@ -106,7 +111,7 @@ class UserMutations:
                     if is_valid:
                         password_value = candidate
                     else:
-                        raise Exception("Failed to generate a valid password")
+                        raise ValidationError("Failed to generate a valid password")
             user_data = {
                 "username": input.username,
                 "email": input.email,
@@ -131,6 +136,13 @@ class UserMutations:
                     body = f"Use this token to set your password: {token}"
                 send_email_smtp(created_user.email, subject, body)
             return self._to_graphql_user(created_user)
+        except (
+            ConflictError,
+            ValidationError,
+            AuthenticationError,
+            AuthorizationError,
+        ):
+            raise
         except Exception as e:
             raise Exception(f"Failed to create user: {str(e)}")
 
@@ -152,9 +164,8 @@ class UserMutations:
 
         Raises:
             AuthorizationError: If user lacks permission to update this user
-
-        Note:
-            Only updates provided fields and automatically updates the timestamp
+            ConflictError: If username or email already exists
+            ValidationError: If input data is invalid
         """
         try:
             # Get current user from context
@@ -164,8 +175,8 @@ class UserMutations:
 
             # Check if user is updating their own profile or has permission to update others
             user_id = str(id)
-            if current_user.id != user_id and not await info.context.has_permission(
-                "users:update"
+            if current_user.id != user_id and not await check_permission(
+                info, "users:update"
             ):
                 raise AuthorizationError(
                     "Permission 'users:update' required to update other users' profiles",
@@ -188,10 +199,14 @@ class UserMutations:
                 return self._to_graphql_user(updated_user)
 
             return None
+        except (
+            ConflictError,
+            ValidationError,
+            AuthenticationError,
+            AuthorizationError,
+        ):
+            raise
         except Exception as e:
-            # Re-raise authentication/authorization errors
-            if isinstance(e, (AuthenticationError, AuthorizationError)):
-                raise
             raise Exception(f"Failed to update user: {str(e)}")
 
     @require_permission("users:delete")
@@ -209,14 +224,13 @@ class UserMutations:
 
         Raises:
             AuthorizationError: If user lacks permission to delete users
-
-        Note:
-            Performs soft delete (sets is_deleted: true).
         """
         try:
             user_service = UserService(UserRepository())
             deleted = await user_service.delete(str(id))
             return deleted
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
             raise Exception(f"Failed to delete user: {str(e)}")
 
@@ -244,6 +258,8 @@ class UserMutations:
                 return self._to_graphql_user(activated_user)
 
             return None
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
             raise Exception(f"Failed to activate user: {str(e)}")
 
@@ -262,25 +278,18 @@ class UserMutations:
 
         Raises:
             AuthorizationError: If user lacks permission to deactivate this user
-
-        Note:
-            Similar to delete_user but more explicit about the operation intent
         """
         try:
             # Get current user from context
             current_user = await get_current_user(info)
             if not current_user:
-                from app.core.exceptions import AuthenticationError
-
                 raise AuthenticationError("Authentication required")
 
             # Check if user is deactivating their own account or has permission to deactivate others
             user_id = str(id)
-            if current_user.id != user_id and not await info.context.has_permission(
-                "users:deactivate"
+            if current_user.id != user_id and not await check_permission(
+                info, "users:deactivate"
             ):
-                from app.core.exceptions import AuthorizationError
-
                 raise AuthorizationError(
                     "Permission 'users:deactivate' required to deactivate other users' accounts",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -293,33 +302,7 @@ class UserMutations:
                 return self._to_graphql_user(deactivated_user)
 
             return None
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
-            # Re-raise authentication/authorization errors
-            if isinstance(e, (AuthenticationError, AuthorizationError)):
-                raise
             raise Exception(f"Failed to deactivate user: {str(e)}")
-
-    @require_permission("users:create")
-    async def send_onboarding_email(self, info: Info, id: strawberry.ID) -> bool:
-        try:
-            if not settings.ONBOARDING_EMAIL_ENABLED:
-                return False
-            user_service = UserService(UserRepository())
-            user = await user_service.get_by_id(str(id))
-            if not user:
-                return False
-            token = create_set_password_token(
-                {"sub": str(user.id), "email": user.email}
-            )
-            subject = "Set your password"
-            base = settings.SET_PASSWORD_URL_BASE
-            if base:
-                param = settings.SET_PASSWORD_URL_PARAM
-                sep = "&" if "?" in base else "?"
-                link = f"{base}{sep}{param}={token}"
-                body = f"Click to set your password: {link}"
-            else:
-                body = f"Use this token to set your password: {token}"
-            return send_email_smtp(user.email, subject, body)
-        except Exception:
-            return False

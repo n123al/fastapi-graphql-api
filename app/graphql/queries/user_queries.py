@@ -10,8 +10,10 @@ from typing import Any, List, Optional
 import strawberry
 from strawberry.types import Info
 
+from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.data.repositories import UserRepository
 from app.graphql.auth import (
+    check_permission,
     get_current_user,
     require_authentication,
     require_permission,
@@ -100,9 +102,7 @@ class UserQueries:
                 return self._to_graphql_user(target_user_data)
 
             # If accessing other user's data, require specific permission
-            if not await info.context.has_permission("users:read"):
-                from app.core.exceptions import AuthorizationError
-
+            if not await check_permission(info, "users:read"):
                 raise AuthorizationError(
                     "Permission 'users:read' required to access other users' data",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -110,12 +110,9 @@ class UserQueries:
 
             return self._to_graphql_user(target_user_data)
 
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
-            # Re-raise authentication/authorization errors
-            from app.core.exceptions import AuthorizationError
-
-            if isinstance(e, AuthorizationError):
-                raise
             print(f"Error in user query: {str(e)}")
             return None
 
@@ -134,9 +131,6 @@ class UserQueries:
 
         Raises:
             AuthorizationError if user lacks users:read permission
-
-        Note:
-            Returns both active and inactive users, but excludes deleted users.
         """
         try:
             user_service = UserService(UserRepository())
@@ -147,6 +141,8 @@ class UserQueries:
                 users.append(self._to_graphql_user(user_data))
 
             return users
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
             # Log the error instead of silently swallowing it
             print(f"Error in users query: {str(e)}")
@@ -173,7 +169,7 @@ class UserQueries:
         """
         try:
             # Get current user from context
-            current_user = await info.context.get_current_user()
+            current_user = await get_current_user(info)
 
             user_service = UserService(UserRepository())
             target_user_data = await user_service.get_by_username(username)
@@ -186,9 +182,7 @@ class UserQueries:
                 return self._to_graphql_user(target_user_data)
 
             # If accessing other user's data, require specific permission
-            if not await info.context.has_permission("users:read"):
-                from app.core.exceptions import AuthorizationError
-
+            if not await check_permission(info, "users:read"):
                 raise AuthorizationError(
                     "Permission 'users:read' required to access other users' data",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -196,12 +190,9 @@ class UserQueries:
 
             return self._to_graphql_user(target_user_data)
 
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
-            # Re-raise authentication/authorization errors
-            from app.core.exceptions import AuthorizationError
-
-            if isinstance(e, AuthorizationError):
-                raise
             print(f"Error in user_by_username query: {str(e)}")
             return None
 
@@ -226,18 +217,13 @@ class UserQueries:
 
             if not current_user:
                 # This should ideally be caught by the decorator, but as a safeguard
-                from app.core.exceptions import AuthenticationError
-
                 raise AuthenticationError("Authentication required")
 
             return self._to_graphql_user(current_user)
 
+        except AuthenticationError:
+            raise
         except Exception as e:
-            # Re-raise authentication errors
-            from app.core.exceptions import AuthenticationError
-
-            if isinstance(e, AuthenticationError):
-                raise
             print(f"Error in me query: {str(e)}")
             return None
 
@@ -272,9 +258,7 @@ class UserQueries:
                 return self._to_graphql_user(target_user_data)
 
             # If accessing other user's data, require specific permission
-            if not await info.context.has_permission("users:read"):
-                from app.core.exceptions import AuthorizationError
-
+            if not await check_permission(info, "users:read"):
                 raise AuthorizationError(
                     "Permission 'users:read' required to access other users' data",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -282,11 +266,8 @@ class UserQueries:
 
             return self._to_graphql_user(target_user_data)
 
+        except (AuthenticationError, AuthorizationError):
+            raise
         except Exception as e:
-            # Re-raise authentication/authorization errors
-            from app.core.exceptions import AuthorizationError
-
-            if isinstance(e, AuthorizationError):
-                raise
             print(f"Error in user_by_email query: {str(e)}")
             return None

@@ -146,10 +146,6 @@ class Mutation:
         return await service.set_password_with_token(input.token, input.password)
 
     @strawberry.mutation
-    async def send_onboarding_email(self, info: Info, id: strawberry.ID) -> bool:
-        return await UserMutations().send_onboarding_email(info, id)
-
-    @strawberry.mutation
     async def delete_user(self, info: Info, id: strawberry.ID) -> bool:
         """Delete a user."""
         result: bool = await UserMutations().delete_user(info, id)

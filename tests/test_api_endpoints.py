@@ -2,38 +2,36 @@
 Unit tests for API endpoints.
 Tests API layer without full integration.
 """
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
 from fastapi.testclient import TestClient
 
 
 class TestHealthEndpoints:
     """Test health check endpoints."""
-    
+
     def test_health_endpoint_structure(self):
         """Test health endpoint response structure."""
         response = {
             "status": "healthy",
             "version": "2.0.0",
-            "timestamp": "2024-01-01T00:00:00"
+            "timestamp": "2024-01-01T00:00:00",
         }
-        
+
         assert "status" in response
         assert "version" in response
         assert "timestamp" in response
         assert response["status"] == "healthy"
-    
+
     def test_detailed_health_structure(self):
         """Test detailed health endpoint structure."""
         response = {
             "status": "healthy",
             "version": "2.0.0",
-            "services": {
-                "api": "healthy",
-                "database": "healthy"
-            }
+            "services": {"api": "healthy", "database": "healthy"},
         }
-        
+
         assert "services" in response
         assert "api" in response["services"]
         assert "database" in response["services"]
@@ -41,67 +39,59 @@ class TestHealthEndpoints:
 
 class TestAuthenticationEndpoints:
     """Test authentication endpoint logic."""
-    
+
     def test_login_request_structure(self):
         """Test login request structure."""
-        login_data = {
-            "identifier": "test@example.com",
-            "password": "password123"
-        }
-        
+        login_data = {"identifier": "test@example.com", "password": "password123"}
+
         assert "identifier" in login_data
         assert "password" in login_data
-    
+
     def test_login_response_structure(self):
         """Test login response structure."""
         response = {
             "accessToken": "token_here",
             "refreshToken": "refresh_token_here",
             "tokenType": "bearer",
-            "expiresIn": 1800
+            "expiresIn": 1800,
         }
-        
+
         assert "accessToken" in response
         assert "refreshToken" in response
         assert "tokenType" in response
         assert "expiresIn" in response
         assert response["tokenType"] == "bearer"
-    
+
     def test_token_refresh_structure(self):
         """Test token refresh structure."""
-        request = {
-            "refreshToken": "refresh_token_here"
-        }
-        
+        request = {"refreshToken": "refresh_token_here"}
+
         response = {
             "accessToken": "new_token_here",
             "tokenType": "bearer",
-            "expiresIn": 1800
+            "expiresIn": 1800,
         }
-        
+
         assert "refreshToken" in request
         assert "accessToken" in response
 
 
 class TestUserEndpoints:
     """Test user endpoint logic."""
-    
+
     def test_user_creation_request(self):
         """Test user creation request structure."""
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
             "password": "password123",
-            "profile": {
-                "firstName": "Test",
-                "lastName": "User"
-            }
+            "profile": {"firstName": "Test", "lastName": "User"},
         }
-        
+
         assert "username" in user_data
         assert "email" in user_data
         assert "password" in user_data
-    
+
     def test_user_response_structure(self):
         """Test user response structure."""
         user = {
@@ -110,14 +100,11 @@ class TestUserEndpoints:
             "email": "test@example.com",
             "isActive": True,
             "emailVerified": False,
-            "profile": {
-                "firstName": "Test",
-                "lastName": "User"
-            },
+            "profile": {"firstName": "Test", "lastName": "User"},
             "createdAt": "2024-01-01T00:00:00",
-            "updatedAt": "2024-01-01T00:00:00"
+            "updatedAt": "2024-01-01T00:00:00",
         }
-        
+
         assert "id" in user
         assert "username" in user
         assert "email" in user
@@ -126,37 +113,33 @@ class TestUserEndpoints:
         # Password should not be in response
         assert "password" not in user
         assert "hashedPassword" not in user
-    
+
     def test_user_update_request(self):
         """Test user update request structure."""
         update_data = {
-            "profile": {
-                "firstName": "Updated",
-                "lastName": "Name",
-                "bio": "New bio"
-            }
+            "profile": {"firstName": "Updated", "lastName": "Name", "bio": "New bio"}
         }
-        
+
         assert "profile" in update_data
         assert isinstance(update_data["profile"], dict)
 
 
 class TestRoleEndpoints:
     """Test role endpoint logic."""
-    
+
     def test_role_creation_request(self):
         """Test role creation request structure."""
         role_data = {
             "name": "editor",
             "description": "Content editor role",
-            "permissionIds": ["perm1", "perm2"]
+            "permissionIds": ["perm1", "perm2"],
         }
-        
+
         assert "name" in role_data
         assert "description" in role_data
         assert "permissionIds" in role_data
         assert isinstance(role_data["permissionIds"], list)
-    
+
     def test_role_response_structure(self):
         """Test role response structure."""
         role = {
@@ -164,16 +147,12 @@ class TestRoleEndpoints:
             "name": "editor",
             "description": "Content editor role",
             "permissions": [
-                {
-                    "id": "perm1",
-                    "name": "user:read",
-                    "description": "Read users"
-                }
+                {"id": "perm1", "name": "user:read", "description": "Read users"}
             ],
             "isSystemRole": False,
-            "isActive": True
+            "isActive": True,
         }
-        
+
         assert "id" in role
         assert "name" in role
         assert "permissions" in role
@@ -182,16 +161,16 @@ class TestRoleEndpoints:
 
 class TestPermissionEndpoints:
     """Test permission endpoint logic."""
-    
+
     def test_permission_response_structure(self):
         """Test permission response structure."""
         permission = {
             "id": "perm_id_here",
             "name": "user:read",
             "description": "Read user data",
-            "isActive": True
+            "isActive": True,
         }
-        
+
         assert "id" in permission
         assert "name" in permission
         assert "description" in permission
@@ -200,20 +179,18 @@ class TestPermissionEndpoints:
 
 class TestGroupEndpoints:
     """Test group endpoint logic."""
-    
+
     def test_group_creation_request(self):
         """Test group creation request structure."""
         group_data = {
             "name": "developers",
             "description": "Development team",
-            "metadata": {
-                "department": "engineering"
-            }
+            "metadata": {"department": "engineering"},
         }
-        
+
         assert "name" in group_data
         assert "description" in group_data
-    
+
     def test_group_response_structure(self):
         """Test group response structure."""
         group = {
@@ -221,11 +198,9 @@ class TestGroupEndpoints:
             "name": "developers",
             "description": "Development team",
             "isSystemGroup": False,
-            "metadata": {
-                "department": "engineering"
-            }
+            "metadata": {"department": "engineering"},
         }
-        
+
         assert "id" in group
         assert "name" in group
         assert "description" in group
@@ -233,77 +208,57 @@ class TestGroupEndpoints:
 
 class TestErrorResponses:
     """Test error response structures."""
-    
+
     def test_validation_error_structure(self):
         """Test validation error response."""
         error = {
             "error": {
                 "message": "Validation failed",
                 "code": "VALIDATION_ERROR",
-                "details": {
-                    "email": "Invalid email format"
-                }
+                "details": {"email": "Invalid email format"},
             }
         }
-        
+
         assert "error" in error
         assert "message" in error["error"]
         assert "code" in error["error"]
-    
+
     def test_authentication_error_structure(self):
         """Test authentication error response."""
         error = {
-            "error": {
-                "message": "Invalid credentials",
-                "code": "AUTHENTICATION_ERROR"
-            }
+            "error": {"message": "Invalid credentials", "code": "AUTHENTICATION_ERROR"}
         }
-        
+
         assert "error" in error
         assert error["error"]["code"] == "AUTHENTICATION_ERROR"
-    
+
     def test_authorization_error_structure(self):
         """Test authorization error response."""
-        error = {
-            "error": {
-                "message": "Access denied",
-                "code": "AUTHORIZATION_ERROR"
-            }
-        }
-        
+        error = {"error": {"message": "Access denied", "code": "AUTHORIZATION_ERROR"}}
+
         assert "error" in error
         assert error["error"]["code"] == "AUTHORIZATION_ERROR"
-    
+
     def test_not_found_error_structure(self):
         """Test not found error response."""
-        error = {
-            "error": {
-                "message": "Resource not found",
-                "code": "NOT_FOUND"
-            }
-        }
-        
+        error = {"error": {"message": "Resource not found", "code": "NOT_FOUND"}}
+
         assert "error" in error
         assert error["error"]["code"] == "NOT_FOUND"
 
 
 class TestPaginationEndpoints:
     """Test pagination in endpoints."""
-    
+
     def test_pagination_parameters(self):
         """Test pagination parameter structure."""
-        params = {
-            "page": 1,
-            "pageSize": 10,
-            "sortBy": "createdAt",
-            "sortOrder": "desc"
-        }
-        
+        params = {"page": 1, "pageSize": 10, "sortBy": "createdAt", "sortOrder": "desc"}
+
         assert "page" in params
         assert "pageSize" in params
         assert params["page"] > 0
         assert params["pageSize"] > 0
-    
+
     def test_paginated_response_structure(self):
         """Test paginated response structure."""
         response = {
@@ -314,10 +269,10 @@ class TestPaginationEndpoints:
                 "totalItems": 100,
                 "totalPages": 10,
                 "hasNext": True,
-                "hasPrevious": False
-            }
+                "hasPrevious": False,
+            },
         }
-        
+
         assert "data" in response
         assert "pagination" in response
         assert "totalItems" in response["pagination"]
@@ -326,7 +281,7 @@ class TestPaginationEndpoints:
 
 class TestGraphQLStructure:
     """Test GraphQL query/mutation structures."""
-    
+
     def test_graphql_query_structure(self):
         """Test GraphQL query structure."""
         query = """
@@ -338,10 +293,10 @@ class TestGraphQLStructure:
             }
         }
         """
-        
+
         assert "query" in query
         assert "me" in query
-    
+
     def test_graphql_mutation_structure(self):
         """Test GraphQL mutation structure."""
         mutation = """
@@ -355,23 +310,21 @@ class TestGraphQLStructure:
             }
         }
         """
-        
+
         assert "mutation" in mutation
         assert "login" in mutation
-    
+
     def test_graphql_error_structure(self):
         """Test GraphQL error response structure."""
         error_response = {
             "errors": [
                 {
                     "message": "Authentication required",
-                    "extensions": {
-                        "code": "AUTHENTICATION_ERROR"
-                    }
+                    "extensions": {"code": "AUTHENTICATION_ERROR"},
                 }
             ]
         }
-        
+
         assert "errors" in error_response
         assert isinstance(error_response["errors"], list)
         assert "message" in error_response["errors"][0]

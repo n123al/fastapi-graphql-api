@@ -14,6 +14,7 @@ from strawberry.types import Info
 from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.motor_database import motor_db_manager
 from app.graphql.auth import (
+    check_permission,
     get_current_user,
     require_any_permission,
     require_permission,
@@ -67,7 +68,7 @@ class GroupQueries:
                 return Group(**doc)
 
             # If not a member, check if user has permission to read all groups
-            if not await info.context.has_permission("groups:read"):
+            if not await check_permission(info, "groups:read"):
                 raise AuthorizationError(
                     "Permission 'groups:read' required to access groups you're not a member of",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -76,10 +77,9 @@ class GroupQueries:
             doc["id"] = str(doc.pop("_id"))
             return Group(**doc)
 
-        except Exception as e:
-            # Re-raise authentication/authorization errors
-            if isinstance(e, (AuthenticationError, AuthorizationError)):
-                raise
+        except (AuthenticationError, AuthorizationError):
+            raise
+        except Exception:
             return None
 
     async def groups(self, info: Info, limit: int = 100) -> List[Group]:
@@ -113,7 +113,7 @@ class GroupQueries:
             collection = motor_db_manager.database["groups"]
 
             # If user has groups:read permission, return all groups
-            if await info.context.has_permission("groups:read"):
+            if await check_permission(info, "groups:read"):
                 docs = (
                     await collection.find({"is_active": True})
                     .limit(limit)
@@ -121,15 +121,16 @@ class GroupQueries:
                 )
             else:
                 # Return only groups user is member of
-                user_groups = (
-                    current_user.profile.groups if current_user.profile.groups else []
-                )
-                if not user_groups:
+                user_group_ids = current_user.group_ids
+                if not user_group_ids:
                     return []
 
                 docs = (
                     await collection.find(
-                        {"name": {"$in": user_groups}, "is_active": True}
+                        {
+                            "_id": {"$in": [ObjectId(gid) for gid in user_group_ids]},
+                            "is_active": True,
+                        }
                     )
                     .limit(limit)
                     .to_list(limit)
@@ -141,10 +142,9 @@ class GroupQueries:
                 groups.append(Group(**doc))
 
             return groups
-        except Exception as e:
-            # Re-raise authentication/authorization errors
-            if isinstance(e, (AuthenticationError, AuthorizationError)):
-                raise
+        except (AuthenticationError, AuthorizationError):
+            raise
+        except Exception:
             return []
 
     async def group_by_name(self, info: Info, name: str) -> Optional[Group]:
@@ -184,7 +184,7 @@ class GroupQueries:
                 return Group(**doc)
 
             # If not a member, check if user has permission to read all groups
-            if not await info.context.has_permission("groups:read"):
+            if not await check_permission(info, "groups:read"):
                 raise AuthorizationError(
                     "Permission 'groups:read' required to access groups you're not a member of",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -193,10 +193,9 @@ class GroupQueries:
             doc["id"] = str(doc.pop("_id"))
             return Group(**doc)
 
-        except Exception as e:
-            # Re-raise authentication/authorization errors
-            if isinstance(e, (AuthenticationError, AuthorizationError)):
-                raise
+        except (AuthenticationError, AuthorizationError):
+            raise
+        except Exception:
             return None
 
     @require_permission("groups:read")

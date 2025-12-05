@@ -14,9 +14,12 @@ from app.core.exceptions import (
     ApplicationError,
     AuthenticationError,
     AuthorizationError,
+    ConflictError,
+    ValidationError,
 )
 from app.core.motor_database import close_db, init_db, motor_db_manager
 from app.core.security import SecurityManager, get_current_user
+from app.graphql.context import GraphQLContext
 from app.graphql.schema import create_graphql_schema
 
 # Configure structured logging
@@ -111,6 +114,30 @@ async def authorization_exception_handler(
     )
 
 
+@app.exception_handler(ConflictError)
+async def conflict_exception_handler(
+    request: Request, exc: ConflictError
+) -> JSONResponse:
+    """Handle conflict errors."""
+    logger.warning("Conflict error occurred", error=exc.message, code=exc.code)
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT,
+        content={"error": {"message": exc.message, "code": exc.code}},
+    )
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(
+    request: Request, exc: ValidationError
+) -> JSONResponse:
+    """Handle validation errors."""
+    logger.warning("Validation error occurred", error=exc.message, code=exc.code)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"error": {"message": exc.message, "code": exc.code}},
+    )
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Handle HTTP exceptions."""
@@ -141,8 +168,6 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 # Security manager
 security_manager = SecurityManager()
 
-
-from app.graphql.context import GraphQLContext
 
 async def get_graphql_context(request: Request) -> GraphQLContext:
     """Create GraphQL context compatible with Strawberry."""

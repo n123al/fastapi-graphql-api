@@ -12,6 +12,66 @@ import strawberry
 from strawberry.types import Info
 
 from app.core.exceptions import AuthenticationError, AuthorizationError
+from app.data.models.user import User
+
+
+async def get_current_user(info: Info) -> Optional[User]:
+    """
+    Helper to get current user from GraphQL context, handling both dict and object contexts.
+    """
+    if not info or not hasattr(info, "context"):
+        return None
+
+    context = info.context
+    if isinstance(context, dict):
+        from typing import cast as _cast
+
+        from app.core.motor_database import MotorDatabaseManager, motor_db_manager
+        from app.core.security import SecurityManager, security_manager
+        from app.graphql.context import GraphQLContext
+
+        ctx = GraphQLContext(
+            motor_db_manager=_cast(
+                MotorDatabaseManager, context.get("motor_db_manager", motor_db_manager)
+            ),
+            security_manager=_cast(
+                SecurityManager, context.get("security_manager", security_manager)
+            ),
+            request=context.get("request"),
+        )
+        return await ctx.get_current_user()
+
+    return cast(Optional[User], await context.get_current_user())
+
+
+async def check_permission(info: Info, permission: str) -> bool:
+    """
+    Helper to check permission from GraphQL context, handling both dict and object contexts.
+    """
+    if not info or not hasattr(info, "context"):
+        return False
+
+    context = info.context
+    if isinstance(context, dict):
+        from typing import cast as _cast
+
+        from app.core.motor_database import MotorDatabaseManager, motor_db_manager
+        from app.core.security import SecurityManager, security_manager
+        from app.graphql.context import GraphQLContext
+
+        ctx = GraphQLContext(
+            motor_db_manager=_cast(
+                MotorDatabaseManager, context.get("motor_db_manager", motor_db_manager)
+            ),
+            security_manager=_cast(
+                SecurityManager, context.get("security_manager", security_manager)
+            ),
+            request=context.get("request"),
+        )
+        return await ctx.has_permission(permission)
+
+    return cast(bool, await context.has_permission(permission))
+
 
 CF = TypeVar("CF", bound=Callable[..., Awaitable[Any]])
 
@@ -304,41 +364,6 @@ def require_authentication() -> Callable[[CF], CF]:
     return decorator
 
 
-# Helper functions for manual authorization checks
-async def check_permission(info: Info, permission: str) -> bool:
-    """
-    Manually check if the current user has a specific permission.
-
-    Args:
-        info: GraphQL resolver info object
-        permission: Permission to check
-
-    Returns:
-        True if user has permission, False otherwise
-    """
-    if not info or not hasattr(info, "context"):
-        return False
-
-    context = info.context
-    from typing import cast as _cast
-
-    from app.core.motor_database import MotorDatabaseManager
-    from app.core.security import SecurityManager
-    from app.graphql.context import GraphQLContext
-
-    if isinstance(context, dict):
-        ctx = GraphQLContext(
-            motor_db_manager=_cast(
-                MotorDatabaseManager, context.get("motor_db_manager")
-            ),
-            security_manager=_cast(SecurityManager, context.get("security_manager")),
-            request=context.get("request"),
-        )
-    else:
-        ctx = context
-    return await ctx.has_permission(permission)
-
-
 async def check_role(info: Info, role: str) -> bool:
     """
     Manually check if the current user has a specific role.
@@ -371,45 +396,3 @@ async def check_role(info: Info, role: str) -> bool:
     else:
         ctx = context
     return await ctx.has_role(role)
-
-
-async def get_current_user(info: Info) -> Optional[Any]:
-    """
-    Get the current user from GraphQL context.
-
-    Args:
-        info: GraphQL resolver info object
-
-    Returns:
-        Current user object or None if not authenticated
-    """
-    if not info or not hasattr(info, "context"):
-        return None
-
-    context = info.context
-    from typing import cast as _cast
-
-    from app.core.motor_database import MotorDatabaseManager
-    from app.core.security import SecurityManager
-    from app.graphql.context import GraphQLContext
-
-    if isinstance(context, dict):
-        ctx = GraphQLContext(
-            motor_db_manager=_cast(
-                MotorDatabaseManager, context.get("motor_db_manager")
-            ),
-            security_manager=_cast(SecurityManager, context.get("security_manager")),
-            request=context.get("request"),
-        )
-        return await ctx.get_current_user()
-
-    # Try new GraphQLContext first
-    if hasattr(context, "get_current_user"):
-        return await context.get_current_user()
-
-    # Fallback to old context structure
-    if hasattr(context, "current_user"):
-        return context.current_user
-
-    # Ultimate fallback
-    return context.get("user")
