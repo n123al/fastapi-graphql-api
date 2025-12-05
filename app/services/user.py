@@ -211,12 +211,17 @@ class UserService(BaseService[User]):
                 processed_updates["email"] = new_email
 
         # Handle profile updates
-        if "profile" in update_data:
-            profile_updates = update_data["profile"]
-            if isinstance(profile_updates, dict):
-                # Merge with existing profile
-                updated_profile = {**existing_user.profile.dict(), **profile_updates}
-                processed_updates["profile"] = updated_profile
+        profile_updates = {}
+        if "profile" in update_data and isinstance(update_data["profile"], dict):
+            profile_updates.update(update_data["profile"])
+
+        if "full_name" in update_data:
+            profile_updates["full_name"] = update_data["full_name"]
+
+        if profile_updates:
+            # Merge with existing profile
+            updated_profile = {**existing_user.profile.dict(), **profile_updates}
+            processed_updates["profile"] = updated_profile
 
         # Handle preferences updates
         if "preferences" in update_data:
@@ -321,6 +326,22 @@ class UserService(BaseService[User]):
                     break
 
         return matching_users
+
+    async def get_users(self, limit: int = 100, skip: int = 0) -> List[User]:
+        """
+        Get all users (active and inactive) excluding deleted ones.
+
+        Args:
+            limit: Maximum number of users to return
+            skip: Number of users to skip (for pagination)
+
+        Returns:
+            List of users
+        """
+        # Override default is_active=True to include both True and False
+        return await self.get_all(
+            limit=limit, skip=skip, is_active={"$in": [True, False]}
+        )
 
     async def get_active_users(self, limit: int = 100, skip: int = 0) -> List[User]:
         """

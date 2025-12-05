@@ -74,6 +74,25 @@ class BaseRepository(Generic[T]):
             raise DatabaseConnectionError("Database connection not available")
         return motor_db_manager.database[self.collection_name]
 
+    def _deduplicate_ids(self, data: Dict[str, Any]) -> None:
+        """
+        Remove duplicate IDs from list fields while preserving order.
+
+        Args:
+            data: Dictionary containing data to process
+        """
+        fields_to_deduplicate = [
+            "permission_ids",
+            "role_ids",
+            "group_ids",
+            "member_ids",
+        ]
+
+        for field in fields_to_deduplicate:
+            if field in data and isinstance(data[field], list):
+                # Use dict.fromkeys() to remove duplicates while preserving order
+                data[field] = list(dict.fromkeys(data[field]))
+
     def _prepare_for_storage(self, model: T) -> Dict[str, Any]:
         """
         Prepare model data for database storage.
@@ -86,6 +105,9 @@ class BaseRepository(Generic[T]):
         """
         # Don't exclude sensitive fields when storing to database
         data = model.to_dict(exclude_sensitive=False)
+
+        # Deduplicate IDs
+        self._deduplicate_ids(data)
 
         # Convert string ID to ObjectId if present
         if "id" in data and data["id"]:
@@ -195,6 +217,9 @@ class BaseRepository(Generic[T]):
         """
         # Set updated_at timestamp
         update_data["updated_at"] = datetime.now(timezone.utc)
+
+        # Deduplicate IDs
+        self._deduplicate_ids(update_data)
 
         try:
             result = await self.collection.update_one(

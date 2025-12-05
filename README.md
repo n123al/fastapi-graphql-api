@@ -223,8 +223,23 @@ After login, set the Playground "HTTP HEADERS":
 
 ## 👥 User Management
 
+### Get Current User (me)
+Retrieve the currently authenticated user's profile.
+```graphql
+query {
+  me {
+    id
+    username
+    email
+    fullName
+    isActive
+    isSuperuser
+  }
+}
+```
+
 ### Get a User
-By ID:
+By ID (requires `users:read` permission for other users):
 ```graphql
 query {
   user(id: "USER_ID") {
@@ -234,6 +249,20 @@ query {
     fullName
     isActive
     isSuperuser
+  }
+}
+```
+
+### Get All Users
+Retrieve a list of all users (active and inactive). Requires `users:read` permission.
+```graphql
+query {
+  users(limit: 10) {
+    id
+    username
+    email
+    fullName
+    isActive
   }
 }
 ```
@@ -251,13 +280,14 @@ query {
 ```
 
 ### Update User
+Update user profile. Users can update their own profile; updating others requires `users:update` permission.
 ```graphql
 mutation {
   updateUser(
     id: "USER_ID",
     input: {
       fullName: "John Doe"
-      isActive: true
+      email: "newemail@example.com"
     }
   ) {
     id
@@ -266,6 +296,14 @@ mutation {
     fullName
     isActive
   }
+}
+```
+
+### Delete User
+Soft delete a user (mark as deleted). Requires `users:delete` permission.
+```graphql
+mutation {
+  deleteUser(id: "USER_ID")
 }
 ```
 

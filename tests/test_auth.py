@@ -385,7 +385,10 @@ class TestUserModel:
             profile=UserProfile(first_name="John", last_name="Doe")
         )
         
-        assert user.full_name == "John Doe"
+        # Property returns first name if available (or full_name if set)
+        assert user.full_name == "John"
+        # Method returns combined name
+        assert user.get_full_name() == "John Doe"
     
     def test_user_full_name_without_names(self):
         """Test full name property without first/last names."""
@@ -396,7 +399,7 @@ class TestUserModel:
             profile=UserProfile()
         )
         
-        assert user.full_name == "testuser"
+        assert user.full_name == ""
     
     def test_user_is_locked_with_future_lockout(self):
         """Test is_locked property with future lockout time."""

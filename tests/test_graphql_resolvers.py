@@ -549,8 +549,8 @@ class TestUserMutations:
         class FakeUserService:
             def __init__(self, repo):
                 pass
-            async def deactivate_user(self, uid):
-                return {"id": uid, "username": "u", "email": "e", "is_active": False}
+            async def delete(self, uid):
+                return True
         monkeypatch.setattr("app.graphql.mutations.user_mutations.UserService", FakeUserService)
         info = Mock()
         info.context = Mock()

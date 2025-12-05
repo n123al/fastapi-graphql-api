@@ -30,6 +30,7 @@ class UserProfile(BaseModel):
     bio: Optional[str] = Field(
         default=None, max_length=1000, description="User biography"
     )
+    full_name: Optional[str] = None  # Added this field
     avatar_url: Optional[str] = Field(
         default=None, description="URL to user's avatar image"
     )
@@ -37,13 +38,6 @@ class UserProfile(BaseModel):
     date_of_birth: Optional[datetime] = Field(
         default=None, description="User's date of birth"
     )
-
-    @property
-    def full_name(self) -> str:
-        """Get the full name from first and last name."""
-        if self.first_name and self.last_name:
-            return f"{self.first_name} {self.last_name}"
-        return self.first_name or self.last_name or ""
 
 
 class UserPreferences(BaseModel):
@@ -121,7 +115,17 @@ class User(BaseDataModel):
     @property
     def full_name(self) -> str:
         """Get user's full name from profile."""
-        return self.profile.full_name or self.username
+        if self.profile and self.profile.full_name:
+            return self.profile.full_name
+        return self.profile.first_name or self.profile.last_name or ""
+
+    def get_full_name(self) -> str:
+        """Get full name with priority logic."""
+        if self.profile and self.profile.full_name:
+            return self.profile.full_name
+        if self.profile.first_name and self.profile.last_name:
+            return f"{self.profile.first_name} {self.profile.last_name}"
+        return self.profile.first_name or self.profile.last_name or ""
 
     @property
     def is_locked(self) -> bool:

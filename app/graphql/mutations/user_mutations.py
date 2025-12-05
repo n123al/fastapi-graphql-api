@@ -12,6 +12,7 @@ import strawberry
 from strawberry.types import Info
 
 from app.core import settings
+from app.core.exceptions import AuthenticationError, AuthorizationError
 from app.core.security import create_set_password_token
 from app.core.utils.helpers import generate_random_string, send_email_smtp
 from app.core.utils.validators import validate_password
@@ -36,15 +37,24 @@ class UserMutations:
 
     @staticmethod
     def _to_graphql_user(user_data: Any) -> User:
+        full_name = ""
+        if hasattr(user_data, "get_full_name"):
+            full_name = user_data.get_full_name()
+
         if hasattr(user_data, "model_dump"):
             data_dict = user_data.model_dump()
         elif hasattr(user_data, "dict"):
             data_dict = user_data.dict()
         else:
             data_dict = user_data
-        full_name = None
-        if "profile" in data_dict and isinstance(data_dict["profile"], dict):
-            full_name = data_dict["profile"].get("full_name")
+
+        if (
+            not full_name
+            and "profile" in data_dict
+            and isinstance(data_dict["profile"], dict)
+        ):
+            full_name = data_dict["profile"].get("full_name") or ""
+
         return User(
             id=strawberry.ID(str(data_dict.get("id"))),
             username=data_dict.get("username"),
@@ -150,8 +160,6 @@ class UserMutations:
             # Get current user from context
             current_user = await get_current_user(info)
             if not current_user:
-                from app.core.exceptions import AuthenticationError
-
                 raise AuthenticationError("Authentication required")
 
             # Check if user is updating their own profile or has permission to update others
@@ -159,8 +167,6 @@ class UserMutations:
             if current_user.id != user_id and not await info.context.has_permission(
                 "users:update"
             ):
-                from app.core.exceptions import AuthorizationError
-
                 raise AuthorizationError(
                     "Permission 'users:update' required to update other users' profiles",
                     code="INSUFFICIENT_PERMISSIONS",
@@ -191,7 +197,7 @@ class UserMutations:
     @require_permission("users:delete")
     async def delete_user(self, info: Info, id: strawberry.ID) -> bool:
         """
-        Soft delete a user by marking them as inactive.
+        Delete a user.
         Requires users:delete permission.
 
         Args:
@@ -205,12 +211,12 @@ class UserMutations:
             AuthorizationError: If user lacks permission to delete users
 
         Note:
-            Performs soft delete (sets is_active: false) rather than permanent deletion
+            Performs soft delete (sets is_deleted: true).
         """
         try:
             user_service = UserService(UserRepository())
-            deleted = await user_service.deactivate_user(str(id))
-            return deleted is not None
+            deleted = await user_service.delete(str(id))
+            return deleted
         except Exception as e:
             raise Exception(f"Failed to delete user: {str(e)}")
 

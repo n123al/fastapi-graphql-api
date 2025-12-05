@@ -39,6 +39,10 @@ class UserQueries:
         Returns:
             GraphQL User type with only the expected fields
         """
+        full_name = ""
+        if hasattr(user_data, "get_full_name"):
+            full_name = user_data.get_full_name()
+
         if hasattr(user_data, "model_dump"):
             data_dict = user_data.model_dump()
         elif hasattr(user_data, "dict"):
@@ -46,10 +50,13 @@ class UserQueries:
         else:
             data_dict = user_data
 
-        # Extract full_name from profile if it exists
-        full_name = None
-        if "profile" in data_dict and isinstance(data_dict["profile"], dict):
-            full_name = data_dict["profile"].get("full_name")
+        # If full_name wasn't retrieved from method, try to get from profile
+        if (
+            not full_name
+            and "profile" in data_dict
+            and isinstance(data_dict["profile"], dict)
+        ):
+            full_name = data_dict["profile"].get("full_name") or ""
 
         return User(
             id=strawberry.ID(str(data_dict.get("id"))),
@@ -115,7 +122,7 @@ class UserQueries:
     @require_permission("users:read")
     async def users(self, info: Info, limit: int = 100) -> List[User]:
         """
-        Retrieve a list of all active users.
+        List all registered accounts.
         Requires users:read permission.
 
         Args:
@@ -129,12 +136,11 @@ class UserQueries:
             AuthorizationError if user lacks users:read permission
 
         Note:
-            Only returns active users (is_active: true) and respects the limit parameter
+            Returns both active and inactive users, but excludes deleted users.
         """
         try:
             user_service = UserService(UserRepository())
-            # Fixed: method name is get_active_users, not get_all_active_users
-            users_data = await user_service.get_active_users(limit=limit)
+            users_data = await user_service.get_users(limit=limit)
 
             users = []
             for user_data in users_data:

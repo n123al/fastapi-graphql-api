@@ -142,13 +142,15 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 security_manager = SecurityManager()
 
 
-async def get_graphql_context(request: Request) -> Dict[str, Any]:
-    """Create GraphQL context compatible with Strawberry (dict-based)."""
-    return {
-        "request": request,
-        "motor_db_manager": motor_db_manager,
-        "security_manager": security_manager,
-    }
+from app.graphql.context import GraphQLContext
+
+async def get_graphql_context(request: Request) -> GraphQLContext:
+    """Create GraphQL context compatible with Strawberry."""
+    return GraphQLContext(
+        motor_db_manager=motor_db_manager,
+        security_manager=security_manager,
+        request=request,
+    )
 
 
 # Setup GraphQL with Strawberry's built-in Playground
