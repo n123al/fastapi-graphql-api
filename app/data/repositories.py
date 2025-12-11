@@ -129,9 +129,9 @@ class BaseRepository(Generic[T]):
         # Convert ObjectId to string ID
         if "_id" in doc:
             doc["id"] = str(doc.pop("_id"))
-        for key in ("role_ids", "group_ids", "permission_ids"):
+        for key in ("role_ids", "group_ids", "permission_ids", "member_ids"):
             if key in doc and isinstance(doc[key], list):
-                doc[key] = [str(v) if isinstance(v, ObjectId) else v for v in doc[key]]
+                doc[key] = [str(v) for v in doc[key]]
 
         return doc
 

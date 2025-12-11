@@ -60,7 +60,7 @@ async def ensure_roles(db):
         for perm_name in role_data.get("permissions", []):
             perm = await perms_col.find_one({"name": perm_name}, {"_id": 1})
             if perm:
-                perm_ids.append(perm["_id"])
+                perm_ids.append(str(perm["_id"]))
         if not existing:
             doc = {
                 "name": role_name,
@@ -139,9 +139,9 @@ async def assign_admin_memberships(db, user_id):
     administrators_group = await groups_col.find_one({"name": "administrators"}, {"_id": 1})
     updates = {}
     if superadmin_role:
-        updates.setdefault("$addToSet", {}).setdefault("role_ids", superadmin_role["_id"])
+        updates.setdefault("$addToSet", {}).setdefault("role_ids", str(superadmin_role["_id"]))
     if administrators_group:
-        updates.setdefault("$addToSet", {}).setdefault("group_ids", administrators_group["_id"])
+        updates.setdefault("$addToSet", {}).setdefault("group_ids", str(administrators_group["_id"]))
     if updates:
         await users_col.update_one({"_id": user_id}, updates)
         print("admin memberships ensured (role/group)")
