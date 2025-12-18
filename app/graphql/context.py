@@ -5,10 +5,10 @@ This module provides the GraphQL context class that encapsulates request-scoped
 data and authorization functionality for GraphQL resolvers.
 """
 
-from strawberry.fastapi import BaseContext
 from typing import Any, Optional
 
 from fastapi import Request
+from strawberry.fastapi import BaseContext
 
 from app.core.motor_database import MotorDatabaseManager
 from app.core.security import SecurityManager
