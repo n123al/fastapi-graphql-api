@@ -14,6 +14,7 @@ from strawberry.types import Info
 
 from app.core.motor_database import motor_db_manager
 from app.data.repositories import UserRepository
+from app.graphql.mutations.auth_mutations import AuthMutations
 from app.graphql.mutations.user_mutations import UserMutations
 from app.graphql.queries import SystemQueries, UserQueries
 from app.graphql.queries.group_queries import GroupQueries
@@ -165,25 +166,13 @@ class Mutation:
 
     @strawberry.mutation
     async def login(self, info: Info, input: LoginInput) -> AuthPayload:
-        auth_service = AuthenticationService(UserRepository())
-        user = await auth_service.authenticate_user(input.identifier, input.password)
-        tokens = await auth_service.generate_tokens(user)
-        return AuthPayload(
-            accessToken=tokens["access_token"],
-            refreshToken=tokens["refresh_token"],
-            tokenType=tokens["token_type"],
-            expiresIn=tokens["expires_in"],
-        )
+        """Login user and return tokens."""
+        return await AuthMutations().login(info, input)
 
     @strawberry.mutation(name="refreshToken")  # type: ignore[misc]
     async def refresh_token(self, info: Info, refreshToken: str) -> AccessTokenPayload:
-        auth_service = AuthenticationService(UserRepository())
-        data = await auth_service.refresh_access_token(refreshToken)
-        return AccessTokenPayload(
-            accessToken=data["access_token"],
-            tokenType=data["token_type"],
-            expiresIn=data["expires_in"],
-        )
+        """Refresh access token."""
+        return await AuthMutations().refresh_token(info, refreshToken)
 
 
 async def create_graphql_schema() -> strawberry.Schema:

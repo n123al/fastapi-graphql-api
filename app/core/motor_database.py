@@ -52,6 +52,9 @@ class MotorDatabaseManager:
                 client_kwargs["tls"] = True
                 client_kwargs["directConnection"] = False
 
+            # Ensure datetimes are timezone-aware
+            client_kwargs["tz_aware"] = True
+
             self.client = AsyncIOMotorClient(
                 settings.MONGODB_URL, **cast(Dict[str, Any], client_kwargs)
             )
